@@ -1,0 +1,18 @@
+# Sistem operasi
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Log dan file sementara
+*.log
+*.tmp
+*.bak
+
+# Konfigurasi lokal (opsional, jangan dipakai jika ingin config ikut diunggah)
+# config/koneksi.local.php
