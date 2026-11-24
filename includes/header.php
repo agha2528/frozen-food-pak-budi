@@ -12,9 +12,19 @@ $flash        = ambil_flash();
 $menuUtama = [
     ['key' => 'dashboard', 'label' => 'Dashboard', 'url' => 'index.php', 'icon' => 'i-grid'],
     ['key' => 'produk', 'label' => 'Produk', 'url' => 'produk.php', 'icon' => 'i-package'],
+    ['key' => 'riwayat', 'label' => 'Riwayat Stok', 'url' => 'riwayat.php', 'icon' => 'i-history'],
     ['key' => 'kategori', 'label' => 'Kategori', 'url' => 'kategori.php', 'icon' => 'i-tag'],
     ['key' => 'supplier', 'label' => 'Supplier', 'url' => 'supplier.php', 'icon' => 'i-truck'],
 ];
+
+$jumlahStokMenipis = 0;
+if (isset($pdo) && $pdo instanceof PDO) {
+    try {
+        $jumlahStokMenipis = (int) $pdo->query('SELECT COUNT(*) FROM produk WHERE stok <= 10')->fetchColumn();
+    } catch (PDOException $exception) {
+        error_log('Gagal menghitung stok menipis: ' . $exception->getMessage());
+    }
+}
 
 $tipeAlert = ['success', 'danger', 'warning', 'info'];
 $flashTipe = $flash !== null && in_array($flash['tipe'] ?? '', $tipeAlert, true)
@@ -29,7 +39,7 @@ $flashTipe = $flash !== null && in_array($flash['tipe'] ?? '', $tipeAlert, true)
     <meta name="description" content="Aplikasi pencatatan produk frozen food Pak Budi">
     <title><?= e($pageTitle) ?> &middot; FrozenStock</title>
     <link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
 <!-- Kumpulan ikon SVG agar tidak perlu library ikon tambahan -->
@@ -126,6 +136,17 @@ $flashTipe = $flash !== null && in_array($flash['tipe'] ?? '', $tipeAlert, true)
         <path d="M12 22V12.5"></path>
         <path d="M17 13v6M14 16h6"></path>
     </symbol>
+    <symbol id="i-history" viewBox="0 0 24 24">
+        <path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"></path>
+        <path d="M3 3v5h5"></path>
+        <path d="M12 7v5l3 2"></path>
+    </symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24">
+        <path d="M12 5v14M6 13l6 6 6-6"></path>
+    </symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24">
+        <path d="M12 19V5M6 11l6-6 6 6"></path>
+    </symbol>
 </svg>
 
 <div class="app-shell">
@@ -151,13 +172,18 @@ $flashTipe = $flash !== null && in_array($flash['tipe'] ?? '', $tipeAlert, true)
                        <?= $activePage === $menu['key'] ? 'aria-current="page"' : '' ?>>
                         <svg class="icon" aria-hidden="true"><use href="#<?= e($menu['icon']) ?>"></use></svg>
                         <span><?= e($menu['label']) ?></span>
+                        <?php if ($menu['key'] === 'produk' && $jumlahStokMenipis > 0): ?>
+                            <span class="nav-badge" title="<?= $jumlahStokMenipis ?> produk stok menipis">
+                                <?= $jumlahStokMenipis ?>
+                            </span>
+                        <?php endif; ?>
                     </a>
                 <?php endforeach; ?>
             </nav>
 
             <div class="sidebar-tip">
                 <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-                <p><strong>Tips singkat</strong>Gunakan filter kategori atau supplier di halaman Produk untuk melihat kelompok produk tertentu.</p>
+                <p><strong>Tips singkat</strong>Gunakan tombol stok di daftar produk untuk menambah stok atau mengubah harga dengan cepat.</p>
             </div>
 
             <div class="sidebar-user">

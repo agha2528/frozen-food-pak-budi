@@ -108,7 +108,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($errors === []) {
+        $stokLama = (int) $produk['stok'];
+        $hargaLama = (float) $produk['harga'];
+        $stokBaru = (int) $form['stok'];
+        $hargaBaru = (float) $form['harga'];
+        $stokBerubah = $stokBaru !== $stokLama;
+        $hargaBerubah = abs($hargaBaru - $hargaLama) > 0.001;
+
         try {
+            $pdo->beginTransaction();
+
             $stmt = $pdo->prepare(
                 'UPDATE produk
                     SET nama_produk = :nama_produk,
@@ -123,15 +132,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':nama_produk' => $form['nama_produk'],
                 ':kategori_id' => (int) $kategoriId,
                 ':supplier_id' => (int) $supplierId,
-                ':harga'       => (float) $form['harga'],
-                ':stok'        => (int) $form['stok'],
+                ':harga'       => $hargaBaru,
+                ':stok'        => $stokBaru,
                 ':satuan'      => $form['satuan'],
                 ':id'          => $id,
             ]);
 
+            // Catat perubahan stok/harga ke riwayat.
+            if ($stokBerubah || $hargaBerubah) {
+                if ($stokBaru > $stokLama) {
+                    $tipe = 'masuk';
+                    $jumlah = $stokBaru - $stokLama;
+                    $keterangan = 'Penambahan stok lewat edit produk';
+                } elseif ($stokBaru < $stokLama) {
+                    $tipe = 'keluar';
+                    $jumlah = $stokLama - $stokBaru;
+                    $keterangan = 'Pengurangan stok lewat edit produk';
+                } else {
+                    $tipe = 'penyesuaian';
+                    $jumlah = 0;
+                    $keterangan = 'Perubahan harga lewat edit produk';
+                }
+
+                $stmtRiwayat = $pdo->prepare(
+                    'INSERT INTO riwayat_stok
+                        (produk_id, tipe, jumlah, stok_sebelum, stok_sesudah,
+                         harga_lama, harga_baru, keterangan)
+                     VALUES
+                        (:produk_id, :tipe, :jumlah, :stok_sebelum, :stok_sesudah,
+                         :harga_lama, :harga_baru, :keterangan)'
+                );
+                $stmtRiwayat->execute([
+                    ':produk_id'    => $id,
+                    ':tipe'         => $tipe,
+                    ':jumlah'       => $jumlah,
+                    ':stok_sebelum' => $stokLama,
+                    ':stok_sesudah' => $stokBaru,
+                    ':harga_lama'   => $hargaLama,
+                    ':harga_baru'   => $hargaBaru,
+                    ':keterangan'   => $keterangan,
+                ]);
+            }
+
+            $pdo->commit();
+
             set_flash('success', 'Produk "' . $form['nama_produk'] . '" berhasil diperbarui.');
             redirect('produk.php');
         } catch (PDOException $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             if (($exception->errorInfo[1] ?? 0) === 1062) {
                 $errors['nama_produk'] = 'Nama produk sudah dipakai produk lain.';
             } else {

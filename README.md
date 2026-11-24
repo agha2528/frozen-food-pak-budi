@@ -15,8 +15,11 @@ Aplikasi web untuk membantu **Pak Budi**, pemilik usaha frozen food, mencatat pr
 
 ## Fitur
 
-- **Dashboard** berisi jumlah produk, kategori, supplier, nilai stok, daftar stok menipis, sebaran produk per kategori, dan sebaran produk per supplier.
+- **Dashboard** berisi jumlah produk, kategori, supplier, nilai stok, daftar stok menipis, sebaran produk per kategori, sebaran produk per supplier, dan aktivitas stok terbaru.
 - **CRUD Produk** — menambah, melihat, mengubah, dan menghapus produk (nama, kategori, supplier, harga, stok, satuan).
+- **Kelola stok & harga cepat** — tombol pada daftar produk dan dashboard membuka modal untuk menambah/mengurangi stok serta mengubah harga tanpa membuka form penuh.
+- **Riwayat stok** — setiap penambahan, pengurangan, dan penyesuaian harga tercatat otomatis, lengkap dengan waktu, stok sebelum/sesudah, dan keterangan.
+- **Filter status stok** — tampilkan produk dengan stok aman, menipis, atau habis, serta urutkan berdasarkan nama, stok, harga, atau produk terbaru.
 - **CRUD Kategori** — menambah, melihat, mengubah, dan menghapus kategori produk.
 - **CRUD Supplier** — menambah, melihat, mengubah, dan menghapus supplier beserta kontak dan alamat.
 - **Filter per kategori** — pilih kategori pada halaman Produk, atau klik tautan kategori untuk langsung melihat produknya.
@@ -43,7 +46,7 @@ Aplikasi web untuk membantu **Pak Budi**, pemilik usaha frozen food, mencatat pr
 frozen-food-pak-budi/
 ├── assets/
 │   ├── css/style.css                 # Gaya tampilan aplikasi
-│   ├── js/app.js                     # Modal konfirmasi hapus & notifikasi
+│   ├── js/app.js                     # Modal stok, konfirmasi hapus, notifikasi
 │   └── vendor/bootstrap/             # Bootstrap 5.3 (lokal)
 ├── config/
 │   └── koneksi.php                   # Konfigurasi koneksi database
@@ -51,17 +54,19 @@ frozen-food-pak-budi/
 │   └── database.sql                  # Struktur tabel + data contoh
 ├── docs/                             # Screenshot untuk README
 ├── includes/
-│   ├── footer.php                    # Penutup layout + modal hapus
+│   ├── footer.php                    # Penutup layout + modal hapus & modal stok
 │   ├── form-kategori.php             # Form kategori (tambah/edit)
 │   ├── form-produk.php               # Form produk (tambah/edit)
 │   ├── form-supplier.php             # Form supplier (tambah/edit)
 │   ├── functions.php                 # Fungsi bantu, session, CSRF, validasi
 │   └── header.php                    # Sidebar, topbar, notifikasi
 ├── index.php                         # Halaman utama (dashboard)
-├── produk.php                        # Daftar produk + filter
+├── produk.php                        # Daftar produk + filter & pengurutan
 ├── produk-tambah.php                 # Tambah produk
 ├── produk-edit.php                   # Ubah produk
+├── produk-stok.php                   # Proses cepat tambah/kurangi stok & harga
 ├── produk-hapus.php                  # Proses hapus produk
+├── riwayat.php                       # Riwayat stok & perubahan harga
 ├── kategori.php                      # Daftar kategori
 ├── kategori-tambah.php               # Tambah kategori
 ├── kategori-edit.php                 # Ubah kategori
@@ -80,6 +85,8 @@ Nama database: **`db_frozen_food`**
 
 ```text
 kategori (1) ───< produk >─── (1) supplier
+                     │
+                     └──< riwayat_stok
 ```
 
 | Tabel | Kolom penting |
@@ -87,13 +94,15 @@ kategori (1) ───< produk >─── (1) supplier
 | `kategori` | `id`, `nama` (unik), `deskripsi`, `created_at` |
 | `supplier` | `id`, `nama` (unik), `kontak`, `alamat`, `created_at` |
 | `produk` | `id`, `nama_produk` (unik), `kategori_id` (FK), `supplier_id` (FK), `harga`, `stok`, `satuan`, `created_at`, `updated_at` |
+| `riwayat_stok` | `id`, `produk_id` (FK), `tipe` (masuk/keluar/penyesuaian), `jumlah`, `stok_sebelum`, `stok_sesudah`, `harga_lama`, `harga_baru`, `keterangan`, `created_at` |
 
 Relasi foreign key:
 
 - `produk.kategori_id` → `kategori.id` (`ON UPDATE CASCADE`, `ON DELETE RESTRICT`)
 - `produk.supplier_id` → `supplier.id` (`ON UPDATE CASCADE`, `ON DELETE RESTRICT`)
+- `riwayat_stok.produk_id` → `produk.id` (`ON UPDATE CASCADE`, `ON DELETE CASCADE`)
 
-Data contoh yang disertakan: **4 kategori**, **4 supplier**, dan **15 produk** frozen food.
+Data contoh yang disertakan: **4 kategori**, **4 supplier**, **15 produk** frozen food, dan **12 catatan riwayat stok**.
 
 ## Cara Menjalankan Aplikasi
 
@@ -160,14 +169,17 @@ Halaman utama wajib bernama `index.php`, dan seluruh halaman bisa dibuka melalui
 1. Buka **Kategori** untuk menambah kelompok produk (misalnya Nugget & Sosis).
 2. Buka **Supplier** untuk mencatat mitra pemasok.
 3. Buka **Produk → Tambah Produk** untuk mencatat produk baru.
-4. Gunakan filter **Kategori** atau **Supplier** di halaman Produk untuk melihat kelompok produk tertentu.
-5. Klik tombol pensil untuk mengubah data, atau tombol tempat sampah untuk menghapus (muncul konfirmasi terlebih dahulu).
+4. Gunakan tombol **kelola stok** (ikon kotak) pada daftar produk untuk menambah/mengurangi stok dan mengubah harga dengan cepat.
+5. Buka **Riwayat Stok** untuk melihat semua perubahan stok beserta waktu dan keterangannya.
+6. Gunakan filter **Kategori**, **Supplier**, **Status stok**, dan pilihan **Urutkan** di halaman Produk untuk melihat kelompok produk tertentu.
+7. Klik tombol pensil untuk mengubah data, atau tombol tempat sampah untuk menghapus (muncul konfirmasi terlebih dahulu).
 
 ## Catatan Teknis
 
 - Semua query yang menerima input pengguna memakai **PDO prepared statement**.
 - Formulir memakai **token CSRF**; proses hapus hanya menerima metode **POST**.
 - Kategori/supplier yang masih memiliki produk ditolak saat dihapus, disertai pesan yang jelas (tidak menampilkan error PHP).
+- Perubahan stok dan harga dicatat pada tabel `riwayat_stok` dalam satu transaksi database.
 - Ambang batas **stok menipis** pada dashboard adalah **10**.
 - Aplikasi tidak membutuhkan login; halaman utama langsung menampilkan dashboard pemilik toko.
 - Tidak ada framework PHP atau library tampilan lain selain Bootstrap.

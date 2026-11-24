@@ -16,7 +16,7 @@ $jumlahMenipis = (int) $pdo->query('SELECT COUNT(*) FROM produk WHERE stok <= 10
 $jumlahHabis   = (int) $pdo->query('SELECT COUNT(*) FROM produk WHERE stok = 0')->fetchColumn();
 
 $stmtMenipis = $pdo->query(
-    'SELECT p.id, p.nama_produk, p.stok, p.satuan, k.nama AS nama_kategori
+    'SELECT p.id, p.nama_produk, p.harga, p.stok, p.satuan, k.nama AS nama_kategori
        FROM produk p
        JOIN kategori k ON k.id = p.kategori_id
       WHERE p.stok <= 10
@@ -24,6 +24,16 @@ $stmtMenipis = $pdo->query(
       LIMIT 6'
 );
 $produkMenipis = $stmtMenipis->fetchAll();
+
+$riwayatTerbaru = $pdo->query(
+    'SELECT r.id, r.tipe, r.jumlah, r.stok_sebelum, r.stok_sesudah,
+            r.harga_lama, r.harga_baru, r.keterangan, r.created_at,
+            p.nama_produk, p.satuan
+       FROM riwayat_stok r
+       JOIN produk p ON p.id = r.produk_id
+      ORDER BY r.created_at DESC, r.id DESC
+      LIMIT 6'
+)->fetchAll();
 
 $perKategori = $pdo->query(
     'SELECT k.id, k.nama, COUNT(p.id) AS jumlah, COALESCE(SUM(p.stok), 0) AS total_stok
@@ -114,6 +124,10 @@ require __DIR__ . '/includes/header.php';
                 Lihat Semua Produk
                 <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
             </a>
+            <a href="riwayat.php" class="btn btn-outline-light">
+                <svg class="icon" aria-hidden="true"><use href="#i-history"></use></svg>
+                Riwayat Stok
+            </a>
         </div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -189,9 +203,23 @@ require __DIR__ . '/includes/header.php';
                                         </span>
                                     </td>
                                     <td class="text-end">
-                                        <a href="produk-edit.php?id=<?= (int) $produk['id'] ?>" class="btn-aksi" title="Edit produk">
-                                            <svg class="icon" aria-hidden="true"><use href="#i-pencil"></use></svg>
-                                        </a>
+                                        <div class="d-inline-flex gap-1">
+                                            <button type="button" class="btn-aksi stok"
+                                                    title="Tambah stok <?= e($produk['nama_produk']) ?>"
+                                                    data-bs-toggle="modal" data-bs-target="#modalStok"
+                                                    data-stok-id="<?= (int) $produk['id'] ?>"
+                                                    data-stok-nama="<?= e($produk['nama_produk']) ?>"
+                                                    data-stok-kategori="<?= e($produk['nama_kategori']) ?>"
+                                                    data-stok-jumlah="<?= (int) $produk['stok'] ?>"
+                                                    data-stok-satuan="<?= e($produk['satuan']) ?>"
+                                                    data-stok-harga="<?= (int) $produk['harga'] ?>"
+                                                    data-stok-tujuan="index.php">
+                                                <svg class="icon" aria-hidden="true"><use href="#i-box-plus"></use></svg>
+                                            </button>
+                                            <a href="produk-edit.php?id=<?= (int) $produk['id'] ?>" class="btn-aksi" title="Edit produk">
+                                                <svg class="icon" aria-hidden="true"><use href="#i-pencil"></use></svg>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -375,5 +403,90 @@ require __DIR__ . '/includes/header.php';
         </section>
     </div>
 </div>
+
+<section class="panel mt-4">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">
+                <svg class="icon" aria-hidden="true"><use href="#i-history"></use></svg>
+                Aktivitas Stok Terbaru
+            </h2>
+            <p class="panel-subtitle">Enam perubahan stok dan harga terakhir.</p>
+        </div>
+        <a href="riwayat.php" class="panel-link">
+            Lihat Riwayat
+            <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+        </a>
+    </div>
+
+    <?php if ($riwayatTerbaru === []): ?>
+        <div class="empty-state">
+            <span class="empty-icon">
+                <svg class="icon" aria-hidden="true"><use href="#i-history"></use></svg>
+            </span>
+            <h3>Belum ada aktivitas</h3>
+            <p>Gunakan tombol kelola stok pada daftar produk untuk mencatat perubahan pertama.</p>
+            <a href="produk.php" class="btn btn-brand btn-sm">
+                <svg class="icon" aria-hidden="true"><use href="#i-box-plus"></use></svg>
+                Kelola Stok Produk
+            </a>
+        </div>
+    <?php else: ?>
+        <div class="table-responsive">
+            <table class="table table-app align-middle">
+                <thead>
+                    <tr>
+                        <th>Waktu</th>
+                        <th>Produk</th>
+                        <th>Jenis</th>
+                        <th>Perubahan</th>
+                        <th>Stok</th>
+                        <th>Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($riwayatTerbaru as $riwayat): ?>
+                        <?php
+                        $selisih = (int) $riwayat['stok_sesudah'] - (int) $riwayat['stok_sebelum'];
+                        $kelasSelisih = $selisih > 0 ? 'plus' : ($selisih < 0 ? 'minus' : 'netral');
+                        ?>
+                        <tr>
+                            <td class="riwayat-waktu">
+                                <?= e(tanggal_waktu_indonesia($riwayat['created_at'])) ?>
+                            </td>
+                            <td>
+                                <p class="produk-nama"><?= e($riwayat['nama_produk']) ?></p>
+                                <p class="produk-satuan">per <?= e($riwayat['satuan']) ?></p>
+                            </td>
+                            <td>
+                                <span class="riwayat-tipe <?= e($riwayat['tipe']) ?>">
+                                    <?= e(label_tipe_stok($riwayat['tipe'])) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="selisih <?= e($kelasSelisih) ?>">
+                                    <?= e(format_selisih_stok((int) $riwayat['stok_sebelum'], (int) $riwayat['stok_sesudah'])) ?>
+                                    <?= e($riwayat['satuan']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="stok-arrow">
+                                    <?= (int) $riwayat['stok_sebelum'] ?>
+                                    <svg class="icon icon-mini" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+                                    <b><?= (int) $riwayat['stok_sesudah'] ?></b>
+                                </span>
+                            </td>
+                            <td class="riwayat-keterangan">
+                                <?= $riwayat['keterangan'] !== null && $riwayat['keterangan'] !== ''
+                                    ? e($riwayat['keterangan'])
+                                    : '-' ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+</section>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -1481,3 +1481,346 @@ a {
         flex: 1;
     }
 }
+
+/* ---------------------------------------------------------
+   Badge jumlah di sidebar
+   --------------------------------------------------------- */
+.nav-badge {
+    margin-left: auto;
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #f2b53c;
+    color: #3c2a00;
+    font-size: 0.66rem;
+    font-weight: 800;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* ---------------------------------------------------------
+   Filter cepat status stok
+   --------------------------------------------------------- */
+.filter-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.quick-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #ffffff;
+    color: #4e6978;
+    font-size: 0.73rem;
+    font-weight: 700;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.quick-pill b {
+    color: var(--ink);
+    font-weight: 800;
+}
+
+.quick-pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.quick-pill.aman .dot {
+    color: #0a7c66;
+}
+
+.quick-pill.menipis .dot {
+    color: #b17a10;
+}
+
+.quick-pill.habis .dot {
+    color: #b02a37;
+}
+
+.quick-pill:hover {
+    border-color: #bfe4ef;
+    background: var(--brand-soft);
+    color: var(--brand-deep);
+}
+
+.quick-pill.active {
+    border-color: #9bdcef;
+    background: var(--brand-soft);
+    color: var(--brand-deep);
+    box-shadow: inset 0 0 0 1px rgba(14, 159, 196, 0.12);
+}
+
+/* ---------------------------------------------------------
+   Aksi kelola stok
+   --------------------------------------------------------- */
+.btn-aksi.stok:hover {
+    color: #087f6b;
+    border-color: #bde9dc;
+    background: #e9f9f3;
+}
+
+.table-app .col-aksi-lebar {
+    width: 138px;
+}
+
+/* ---------------------------------------------------------
+   Modal kelola stok & harga
+   --------------------------------------------------------- */
+.modal-stok {
+    overflow: hidden;
+    border: 0;
+    border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(8, 38, 54, 0.28);
+}
+
+.modal-stok .modal-header {
+    align-items: flex-start;
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #f5fcfe, #ffffff);
+}
+
+.modal-eyebrow {
+    margin: 0 0 3px;
+    color: var(--brand-dark);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.modal-stok .modal-title {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1.12rem;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.modal-subtitle {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.modal-stok .modal-body {
+    padding: 20px 24px;
+}
+
+.modal-stok .modal-footer {
+    padding: 16px 24px 22px;
+    border-top: 1px solid var(--line);
+    background: #fbfdfe;
+}
+
+.stok-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.stok-summary-item {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f8fcfe;
+}
+
+.stok-summary-item span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.stok-summary-item strong {
+    display: block;
+    margin-top: 3px;
+    color: var(--ink);
+    font-size: 0.98rem;
+    font-weight: 800;
+}
+
+.stok-preview {
+    margin-top: 16px;
+    padding: 11px 14px;
+    border: 1px dashed #c7e6ef;
+    border-radius: 11px;
+    background: #f4fbfe;
+    color: #436575;
+    font-size: 0.8rem;
+}
+
+.stok-preview strong {
+    color: var(--brand-deep);
+    font-weight: 800;
+}
+
+.stok-preview.stok-minus {
+    border-color: #f2c4c9;
+    background: #fdf1f2;
+    color: #a32836;
+}
+
+.stok-preview.stok-minus strong {
+    color: #a32836;
+}
+
+/* ---------------------------------------------------------
+   Riwayat stok
+   --------------------------------------------------------- */
+.riwayat-tipe {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 0.71rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.riwayat-tipe::before {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    content: "";
+}
+
+.riwayat-tipe.masuk {
+    color: #0a7c66;
+    background: #e5f8f2;
+}
+
+.riwayat-tipe.keluar {
+    color: #b02a37;
+    background: #fdeef0;
+}
+
+.riwayat-tipe.penyesuaian {
+    color: #a5680a;
+    background: #fdf4e2;
+}
+
+.selisih {
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.selisih.plus {
+    color: #0a7c66;
+}
+
+.selisih.minus {
+    color: #b02a37;
+}
+
+.selisih.netral {
+    color: var(--muted);
+}
+
+.stok-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.stok-arrow b {
+    color: var(--ink);
+    font-weight: 800;
+}
+
+.icon-mini {
+    width: 13px;
+    height: 13px;
+    color: #9db4c0;
+}
+
+.harga-change {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+.harga-change s {
+    color: var(--muted);
+}
+
+.harga-change b {
+    color: var(--ink);
+}
+
+.riwayat-waktu {
+    color: #496575;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.riwayat-keterangan {
+    max-width: 240px;
+    color: #597383;
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.pagination-app {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--line);
+    background: #fbfdfe;
+}
+
+.pagination-app .info {
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.pagination-app .nav-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.pagination-app .btn {
+    padding: 0.36rem 0.7rem;
+    font-size: 0.76rem;
+}
+
+.pagination-app .btn.disabled {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+@media (max-width: 575.98px) {
+    .stok-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-quick {
+        width: 100%;
+    }
+
+    .quick-pill {
+        flex: 1;
+        justify-content: center;
+    }
+}

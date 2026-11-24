@@ -13,6 +13,7 @@ CREATE DATABASE IF NOT EXISTS `db_frozen_food`
 USE `db_frozen_food`;
 
 -- Hapus tabel lama agar import ulang tidak bentrok (urutan: anak -> induk)
+DROP TABLE IF EXISTS `riwayat_stok`;
 DROP TABLE IF EXISTS `produk`;
 DROP TABLE IF EXISTS `kategori`;
 DROP TABLE IF EXISTS `supplier`;
@@ -79,6 +80,33 @@ CREATE TABLE `produk` (
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
+-- ------------------------------------------------------------
+-- Tabel: riwayat_stok
+-- Mencatat setiap penambahan, pengurangan, penyesuaian stok,
+-- dan perubahan harga produk.
+-- ------------------------------------------------------------
+CREATE TABLE `riwayat_stok` (
+  `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `produk_id`    INT UNSIGNED NOT NULL,
+  `tipe`         ENUM('masuk', 'keluar', 'penyesuaian') NOT NULL DEFAULT 'masuk',
+  `jumlah`       INT UNSIGNED NOT NULL DEFAULT 0,
+  `stok_sebelum` INT UNSIGNED NOT NULL DEFAULT 0,
+  `stok_sesudah` INT UNSIGNED NOT NULL DEFAULT 0,
+  `harga_lama`   DECIMAL(12, 2) NULL,
+  `harga_baru`   DECIMAL(12, 2) NULL,
+  `keterangan`   VARCHAR(150) NULL,
+  `created_at`   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_riwayat_produk` (`produk_id`),
+  KEY `idx_riwayat_tanggal` (`created_at`),
+  CONSTRAINT `fk_riwayat_produk`
+    FOREIGN KEY (`produk_id`) REFERENCES `produk` (`id`)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
 -- ============================================================
 --  DATA CONTOH
 -- ============================================================
@@ -113,3 +141,22 @@ VALUES
 (13, 'Bakso Sapi Frozen 500g',        4, 4, 38000.00,  9, 'pack'),
 (14, 'Jagung Manis Beku 500g',        3, 3, 20000.00,  0, 'pack'),
 (15, 'Sosis Sapi Smoked 500g',        1, 1, 33000.00, 18, 'pack');
+
+-- Riwayat stok contoh: masuk, keluar, dan penyesuaian harga.
+INSERT INTO `riwayat_stok`
+  (`produk_id`, `tipe`, `jumlah`, `stok_sebelum`, `stok_sesudah`,
+   `harga_lama`, `harga_baru`, `keterangan`, `created_at`)
+VALUES
+(1,  'masuk',       40,  0, 40, NULL,     35000.00, 'Stok awal produk', NOW() - INTERVAL 9 DAY),
+(2,  'masuk',       60,  0, 60, NULL,     28000.00, 'Stok awal produk', NOW() - INTERVAL 8 DAY),
+(12, 'masuk',       18,  0, 18, NULL,     40000.00, 'Stok awal produk', NOW() - INTERVAL 7 DAY),
+(1,  'masuk',        8, 40, 48, 35000.00, 35000.00, 'Restock dari PT Frozen Nusantara', NOW() - INTERVAL 2 DAY),
+(5,  'masuk',       30,  0, 30, NULL,     55000.00, 'Stok awal produk', NOW() - INTERVAL 5 DAY),
+(5,  'keluar',       5, 30, 25, 55000.00, 55000.00, 'Penjualan harian', NOW() - INTERVAL 1 DAY),
+(8,  'masuk',       50,  0, 50, NULL,     18000.00, 'Stok awal produk', NOW() - INTERVAL 4 DAY),
+(13, 'masuk',       20,  0, 20, NULL,     38000.00, 'Stok awal produk', NOW() - INTERVAL 8 DAY),
+(13, 'keluar',      11, 20,  9, 38000.00, 38000.00, 'Penjualan akhir pekan', NOW() - INTERVAL 6 HOUR),
+(14, 'masuk',       12,  0, 12, NULL,     20000.00, 'Stok awal produk', NOW() - INTERVAL 3 DAY),
+(14, 'keluar',      12, 12,  0, 20000.00, 20000.00, 'Stok habis terjual', NOW() - INTERVAL 8 HOUR),
+(12, 'penyesuaian',  4, 18, 22, 40000.00, 42000.00, 'Restock dan penyesuaian harga', NOW() - INTERVAL 12 HOUR);
+

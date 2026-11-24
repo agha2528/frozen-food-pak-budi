@@ -110,17 +110,67 @@ function rupiah(mixed $angka): string
 }
 
 /**
- * Tanggal hari ini dalam format Indonesia, contoh: 23 November 2026.
+ * Nama bulan dalam bahasa Indonesia.
  */
-function tanggal_hari_ini(): string
+function nama_bulan(int $bulan): string
 {
-    $bulan = [
+    $daftar = [
         1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
         5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
         9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
     ];
 
-    return date('j') . ' ' . $bulan[(int) date('n')] . ' ' . date('Y');
+    return $daftar[$bulan] ?? '';
+}
+
+/**
+ * Tanggal hari ini dalam format Indonesia, contoh: 23 November 2026.
+ */
+function tanggal_hari_ini(): string
+{
+    return date('j') . ' ' . nama_bulan((int) date('n')) . ' ' . date('Y');
+}
+
+/**
+ * Format tanggal dan jam dari database, contoh: 24 November 2026, 08:15.
+ */
+function tanggal_waktu_indonesia(?string $waktu): string
+{
+    if ($waktu === null || $waktu === '') {
+        return '-';
+    }
+
+    $timestamp = strtotime($waktu);
+    if ($timestamp === false) {
+        return '-';
+    }
+
+    return date('j', $timestamp) . ' ' . nama_bulan((int) date('n', $timestamp))
+        . ' ' . date('Y', $timestamp) . ', ' . date('H:i', $timestamp);
+}
+
+/**
+ * Menampilkan selisih stok dengan tanda + atau -, contoh: +8 atau -5.
+ */
+function format_selisih_stok(int $stokSebelum, int $stokSesudah): string
+{
+    $selisih = $stokSesudah - $stokSebelum;
+
+    return $selisih > 0 ? '+' . $selisih : (string) $selisih;
+}
+
+/**
+ * Label ramah pengguna untuk tipe riwayat stok.
+ */
+function label_tipe_stok(string $tipe): string
+{
+    $label = [
+        'masuk'       => 'Stok Masuk',
+        'keluar'      => 'Stok Keluar',
+        'penyesuaian' => 'Penyesuaian',
+    ];
+
+    return $label[$tipe] ?? 'Perubahan';
 }
 
 /**

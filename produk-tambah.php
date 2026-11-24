@@ -90,6 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($errors === []) {
         try {
+            $pdo->beginTransaction();
+
             $stmt = $pdo->prepare(
                 'INSERT INTO produk (nama_produk, kategori_id, supplier_id, harga, stok, satuan)
                  VALUES (:nama_produk, :kategori_id, :supplier_id, :harga, :stok, :satuan)'
@@ -103,9 +105,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':satuan'      => $form['satuan'],
             ]);
 
+            $produkId = (int) $pdo->lastInsertId();
+            $stokAwal = (int) $form['stok'];
+
+            // Catat stok awal ke riwayat agar perubahan stok selalu terlacak.
+            if ($stokAwal > 0) {
+                $stmtRiwayat = $pdo->prepare(
+                    'INSERT INTO riwayat_stok
+                        (produk_id, tipe, jumlah, stok_sebelum, stok_sesudah,
+                         harga_lama, harga_baru, keterangan)
+                     VALUES
+                        (:produk_id, :tipe, :jumlah, 0, :stok_sesudah,
+                         NULL, :harga_baru, :keterangan)'
+                );
+                $stmtRiwayat->execute([
+                    ':produk_id'    => $produkId,
+                    ':tipe'         => 'masuk',
+                    ':jumlah'       => $stokAwal,
+                    ':stok_sesudah' => $stokAwal,
+                    ':harga_baru'   => (float) $form['harga'],
+                    ':keterangan'   => 'Stok awal produk',
+                ]);
+            }
+
+            $pdo->commit();
+
             set_flash('success', 'Produk "' . $form['nama_produk'] . '" berhasil ditambahkan.');
             redirect('produk.php');
         } catch (PDOException $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             if (($exception->errorInfo[1] ?? 0) === 1062) {
                 $errors['nama_produk'] = 'Nama produk sudah terdaftar. Gunakan nama lain.';
             } else {
